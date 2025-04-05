@@ -8,10 +8,10 @@ pub fn greedy_snake_move_barriers(snake: Vec<i32>, fruit: Vec<i32>, barriers: Ve
     }
 
     let head = (snake[0], snake[1]);
-    let body = vec![
+    let ini_body = vec![
         (snake[2], snake[3]),
         (snake[4], snake[5]),
-        (snake[6], snake[7]),
+        //最后一节不会碰撞
     ];
     let fruit_pos = (fruit[0], fruit[1]);
 
@@ -30,14 +30,17 @@ pub fn greedy_snake_move_barriers(snake: Vec<i32>, fruit: Vec<i32>, barriers: Ve
     ];
 
     let mut queue = VecDeque::new();
+    let mut body_queue = VecDeque::new();
     let mut visited = HashSet::new();
     let mut parent = std::collections::HashMap::new();
 
     queue.push_back(head);
+    body_queue.push_back(ini_body);
     visited.insert(head);
     parent.insert(head, None);
 
     while let Some((x, y)) = queue.pop_front() {
+        let body:Vec<(i32,i32)> = body_queue.pop_front().expect("REASON");
         if (x, y) == fruit_pos {
             break;
         }
@@ -57,8 +60,13 @@ pub fn greedy_snake_move_barriers(snake: Vec<i32>, fruit: Vec<i32>, barriers: Ve
             if visited.contains(&next_pos) {
                 continue;
             }
+            let new_body = vec![
+                (x,y),
+                body.get(0).cloned().unwrap(),
+            ];
 
             queue.push_back(next_pos);
+            body_queue.push_back(new_body);
             visited.insert(next_pos);
             parent.insert(next_pos, Some((x, y)));
         }
@@ -89,13 +97,49 @@ pub fn greedy_snake_move_barriers(snake: Vec<i32>, fruit: Vec<i32>, barriers: Ve
     }
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-//
-//     #[test]
-//     fn it_works() {
-//         let result = add(2, 2);
-//         assert_eq!(result, 4);
-//     }
-// }
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+
+    #[test]
+    fn move_test() {
+        assert_eq!(greedy_snake_move_barriers(
+            [1,1,1,2,1,3,1,4].to_vec(),
+            [4,5].to_vec(),
+            [2,1,2,2,2,3,2,4,2,5,2,6,2,7,2,8,3,1,3,2,3,3,3,4].to_vec(),
+        ), -1);
+
+        assert_eq!(greedy_snake_move_barriers(
+            [1,1,1,2,1,3,1,4].to_vec(),
+            [1,8].to_vec(),
+            [2,1,2,2,2,3,2,4,2,5,2,6,2,7,2,8,3,1,3,2,3,3,3,4].to_vec(),
+        ), -1);
+
+        assert_eq!(greedy_snake_move_barriers(
+            [1,4,1,3,1,2,1,1].to_vec(),
+            [1,8].to_vec(),
+            [2,1,2,2,2,3,2,4,2,5,2,6,2,7,2,8,3,1,3,2,3,3,3,4].to_vec(),
+        ), 0);
+
+        assert_eq!(greedy_snake_move_barriers(
+            [1,1,2,1,2,2,1,2].to_vec(),
+            [2,8].to_vec(),
+            [3,1,3,2,3,3,3,3,3,5,3,6,3,7,3,8,4,1,4,2,4,3,4,4].to_vec(),
+        ), 0);
+
+        assert_eq!(greedy_snake_move_barriers(
+            [1,1,1,2,2,2,2,1].to_vec(),
+            [2,8].to_vec(),
+            [3,1,3,2,3,3,3,3,3,5,3,6,3,7,3,8,4,1,4,2,4,3,4,4].to_vec(),
+        ), 3);
+
+        assert_eq!(greedy_snake_move_barriers(
+            [1,1,1,2,2,2,2,1].to_vec(),
+            [2,8].to_vec(),
+            [4,1,4,2,4,3,4,4,4,5,4,6,4,7,4,8,5,1,5,2,5,3,5,4].to_vec(),
+        ), 3)
+    }
+}
+
+
